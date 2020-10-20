@@ -8,7 +8,7 @@ class Home extends Component {
     super(props);
   }
   componentDidMount() {
-    this.props.getHomeList();
+    // this.props.getHomeList();
   }
   render() {
     return (
@@ -21,12 +21,18 @@ class Home extends Component {
     );
   }
 }
+
+//入参为服务端store,返回一个填充好数据的store,形式为promise
+Home.loadData=(store)=>{
+  return store.dispatch(getHomeList())
+}
+
 const mapStateToProps = (state) => ({
   list: state.home.list,
 });
 const mapDispatchToProps = (dispatch) => ({
-  getHomeList() {
-    dispatch(getHomeList());
-  },
+  // getHomeList() {
+  //   dispatch(getHomeList());
+  // },
 });
 export default connect(mapStateToProps, mapDispatchToProps)(Home);

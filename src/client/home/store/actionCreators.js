@@ -6,7 +6,7 @@ import axios from "axios";
 export const getHomeList = () => {
   return (dispatch) => {
     return axios
-      .get("https://easy-mock.com/mock/5f8e7d03aed7a3476f0515a8/example/home")
+      .get("https://lengyuexin.github.io/json/text.json")
       .then((res) => {
         const list = res.data.list;
         dispatch(changeList(list));
