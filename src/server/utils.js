@@ -5,6 +5,7 @@ import { StaticRouter, Route } from "react-router-dom";
 import Routes from "../routes";
 import store from "../store";
 import { Provider } from "react-redux";
+import { Helmet } from 'react-helmet';
 export const render = (req) => {
   const content = renderToString(
     <Provider store={store}>
@@ -17,11 +18,14 @@ export const render = (req) => {
       </StaticRouter>
     </Provider>
   );
+  const helmet = Helmet.renderStatic();
   return `
         <html>
-            <head>
-                <title>react-ssr</title>
-            </head>
+        <head>
+        <title>react-ssr</title>
+        ${helmet.title.toString()}
+        ${helmet.meta.toString()}
+     </head>
             <body>
             <div id="root">${content}</div>
             </body>
