@@ -1,13 +1,16 @@
-//src/server/utils.js
 import React from 'react'
 import { renderToString } from 'react-dom/server'
 import { StaticRouter } from 'react-router-dom'
-import Routes from '../routes' //服务端加载路由
+import Routes from '../routes'
+import store from '../store'
+import { Provider } from 'react-redux'
 export const render = (req) => {
     const content = renderToString(
-        <StaticRouter location={req.path} >
-            {Routes}
-        </StaticRouter>
+        <Provider store={store}>
+            <StaticRouter location={req.path} >
+                {Routes}
+            </StaticRouter>
+        </Provider>
     )
     return `
         <html>
@@ -20,4 +23,5 @@ export const render = (req) => {
             <script src="/index.js"></script>
         </html>
     `
+
 }

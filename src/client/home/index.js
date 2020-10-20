@@ -1,14 +1,32 @@
-import React from 'react';
-import Header from '../header'
-const handleClick = () => {
-    alert('click')
-}
-function Home() {
+import React, { Component } from "react";
+import { connect } from "react-redux";
+import Header from "../header";
+import { getHomeList } from "./store/actionCreators";
+
+class Home extends Component {
+  constructor(props) {
+    super(props);
+  }
+  componentDidMount() {
+    this.props.getHomeList();
+  }
+  render() {
     return (
-        <div>
-            <Header/>
-            <div onClick={handleClick}> 这是home </div>
-        </div>
-    )
+      <>
+        <Header></Header>
+        {this.props.list.map((item) => (
+          <div key={item.id}>{item.text}</div>
+        ))}
+      </>
+    );
+  }
 }
-export default Home
+const mapStateToProps = (state) => ({
+  list: state.home.list,
+});
+const mapDispatchToProps = (dispatch) => ({
+  getHomeList() {
+    dispatch(getHomeList());
+  },
+});
+export default connect(mapStateToProps, mapDispatchToProps)(Home);
