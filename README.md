@@ -6,9 +6,23 @@ Server Slide Rendering  服务端渲染
 2.  可以缩短“第一有意义渲染时间”（First-Meaningful-Paint-Time）解决首屏白屏问题
     * 如果完全依赖于浏览器端渲染，那么服务器端返回的 HTML 就是一个空荡荡的框架和对 JavaScript 的应用，然后浏览器下载 JavaScript，再根据 JavaScript 中的 AJAX 调用获取服务器端数据，再渲染出 DOM 来填充网页内容，总共需要三个 HTTP 或 HTTPS 请求。
     * 如果使用服务器端渲染，第一个 HTTP/HTTPS 请求返回的 HTML 里就包含可以渲染的内容了，这样用户第一时间就会感觉到“有东西画出来了”，这样的感知性能更好。
-### 核心原理(基于React)
+### SSR+SPA 体验升级
+只实现 SSR 其实没啥意义，技术上没有任何发展和进步，否则 SPA 技术就不会出现。
+
+但是单纯的 SPA又不够完美，所以最好的方案就是这两种体验和技术的结合，第一次访问页面是服务端渲染，基于第一次访问后续的交互就是 SPA 的效果和体验，还不影响 SEO 效果，这就有点完美了。
+
+单纯实现 ssr 很简单，毕竟这是传统技术，也不分语言，随便用 php 、jsp、asp、node 等都可以实现。
+
+但是要实现两种技术的结合，同时可以最大限度的重用代码（同构），减少开发维护成本，那就需要采用 react 或者 vue 等前端框架相结合 node(ssr) 来实现。
+
+本文主要说 ReactSSR技术 ,当然 vue 也一样，只是技术栈不同而已
+### 核心原理(基于React+Express)
 如下图：
 ![image](http://5b0988e595225.cdn.sohucs.com/images/20190919/745b23c1ac124d31a8b4af5cc8134b89.jpeg)
+
+整体来说 react 服务端渲染原理不复杂，其中最核心的内容就是同构。
+
+node server 接收客户端请求，得到当前的 req url path,然后在已有的路由表内查找到对应的组件，拿到需要请求的数据，将数据作为 props 、 context或者 store 形式传入组件，然后基于 react 内置的服务端渲染api renderToString()orrenderToNodeStream() 把组件渲染为 html字符串或者 stream流, 在把最终的 html 进行输出前需要将数据注入到浏览器端(注水)，server 输出(response)后浏览器端可以得到数据(脱水)，浏览器开始进行渲染和节点对比，然后执行组件的 componentDidMount 完成组件内事件绑定和一些交互，浏览器重用了服务端输出的 html节点，整个流程结束。
 
 1. 服务端直接给出Html
 ```
@@ -297,7 +311,7 @@ import axios from "axios";
 export const getHomeList = () => {
   return (dispatch) => {
     return axios
-      .get("https://easy-mock.com/mock/5f8e7d03aed7a3476f0515a8/example/home")
+      .get("ttps://lengyuexin.github.io/json/text.json")
       .then((res) => {
         const list = res.data.list;
         dispatch(changeList(list));
@@ -472,7 +486,7 @@ export default connect(mapStateToProps, mapDispatchToProps)(Home);
 其实是来自客户端执行组件挂载请求数据，得来的，显然不是我们想要的效果。
 那该怎么办呢?这需要我们在服务器端请求完数据，进行预加载，然后客户端拿到数据进行渲染。
 #### 数据预加载
-1. 我们定一个数据预加载的函数loadData和路由的映射关系。方便我们在服务端给出页面前调用，填充服务端store。
+1. 我们定一个路由表维护关系，方便我们管理。
 ```
 //src/routes.js
 import Home from './client/home'
@@ -482,7 +496,7 @@ export default [
         path: "/",
         component: Home,
         exact: true,
-        loadData: Home.loadData,//服务端获取异步数据的函数
+       // loadData: // Home.loadData,// 另一种通过loadData写法，服务端获取异步数据的函数
         key: 'home'
     },
     {
@@ -571,8 +585,12 @@ class Home extends Component {
   constructor(props) {
     super(props);
   }
-  componentDidMount() {
+  //componentDidMount() {
     // this.props.getHomeList();    去除 挂载时候加载数据
+  //}
+  
+  static async getInitialProps(store) {
+    await store.dispatch(getHomeList());
   }
   render() {
     return (
@@ -586,10 +604,10 @@ class Home extends Component {
   }
 }
 
-//入参为服务端store,返回一个填充好数据的store,形式为promise
-Home.loadData=(store)=>{
-  return store.dispatch(getHomeList())
-}
+<!--// 另一种LoadData写法，入参为服务端store,返回一个填充好数据的store,形式为promise-->
+<!--Home.loadData=(store)=>{-->
+<!--  return store.dispatch(getHomeList())-->
+<!--}-->
 
 const mapStateToProps = (state) => ({
   list: state.home.list,
@@ -604,36 +622,54 @@ export default connect(mapStateToProps, mapDispatchToProps)(Home);
 ```
 5. 服务端根据路由匹配相应的组件加载数据
 ```
-import express from 'express'
-import {render} from './utils'
-import { matchRoutes } from 'react-router-config'
-import routes from '../routes'
-import store from '../store'
+import express from "express";
+import { render } from "./utils";
+import { matchRoutes } from "react-router-config";
+import routes from "../routes";
+import store from "../store";
 const app = new express();
-app.use(express.static('public'))
+app.use(express.static("public"));
 app.get("*", (req, res) => {
   const matchedRoutes = matchRoutes(routes, req.path);
-  const promises = [];
-  matchedRoutes.forEach(item => {
-      if (item.route.loadData) {
-          promises.push(item.route.loadData(store));
-      };
-  });
-  console.log(matchedRoutes)
-  //等待所有异步结果执行完毕，服务端直出页面
-  Promise.all(promises).then(_=>{
-      res.send(render({
-          req,
-          store,
-          routes
-      }))
 
-  })
-})
+  matchedRoutes.forEach((item) => {
+    if (item.route.component.getInitialProps) {
+      console.log(item.route.component.getInitialProps);
+      item.route.component.getInitialProps(store);
+    }
+  });
+  res.send(
+    render({
+      req,
+      store,
+      routes,
+    })
+  );
+
+  // 另一种通过loadData的实现方式
+  // const promises = [];
+  // matchedRoutes.forEach(item => {
+  //     if (item.route.loadData) {
+  //         promises.push(item.route.loadData(store));
+  //     };
+  // });
+
+  //等待所有异步结果执行完毕，服务端直出页面
+  // Promise.all(promises).then((_) => {
+  //   res.send(
+  //     render({
+  //       req,
+  //       store,
+  //       routes,
+  //     })
+  //   );
+  // });
+});
 
 app.listen(3004, () => {
   console.log("run server http://localhost:3004");
 });
+
 
 ```
 运行时候发现，客户端数据为null,why?
@@ -734,7 +770,7 @@ render(){
 ```
 服务端代码
 ```
-
+import { Helmet } from 'react-helmet';
 //该方法放在renderToString之后
  const helmet = Helmet.renderStatic();
 
@@ -747,3 +783,4 @@ render(){
  </head>`
 //...
 ```
+[代码传送门](https://github.com/tianwenju/react-ssr-demo/tree/ssr-demo4)

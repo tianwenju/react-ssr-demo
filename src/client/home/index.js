@@ -2,7 +2,7 @@ import React, { Component } from "react";
 import { connect } from "react-redux";
 import Header from "../header";
 import { getHomeList } from "./store/actionCreators";
-import { Helmet } from 'react-helmet';
+import { Helmet } from "react-helmet";
 
 class Home extends Component {
   constructor(props) {
@@ -11,6 +11,11 @@ class Home extends Component {
   componentDidMount() {
     // this.props.getHomeList();
   }
+
+  static async getInitialProps(store) {
+    await store.dispatch(getHomeList());
+  }
+
   render() {
     return (
       <>
