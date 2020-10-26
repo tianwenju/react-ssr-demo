@@ -1,5 +1,11 @@
 ### SSR介绍
 Server Slide Rendering  服务端渲染
+
+### 什么是服务端渲染
+服务端渲染（Server-Side Render），是指将单页应用（SPA）在服务器端渲染为 HTML 片段，发送到浏览器，然后为其绑定状态与事件，成为完全可交互页面的过程。
+![image](https://www.plantuml.com/plantuml/svg/SoWkIImgAStDuKfCBialKb1wFcN5iuxj-iyxrhoOkLf98R5OeRGujOYh0AWgCpcp836lH47fsPpUfrqBdyvS0PO7IfS1LN21r2desa7v2bOABzRjVpbzdOA-mil9-vxrBUM2Ii2LM2b037g-Ulsp7PkUpP-Cf09ac9M2JKfccK9cYgrIKNv-YP9TJ9wUdbvoVbv9Qbu9a1MJPwCFL637nUMGcfS2z0C0)
+### 与客户端渲染的区别
+![image](https://www.plantuml.com/plantuml/svg/VP11IWCn58RtESLZDjCkEht0E1IyWJr1JDxOu4nUITxe5KR1bMuAWkYgK55meujUPsRSzGecHLHGtBt_JxxlXSmyIyTDNOdKdngxb4xMi91Mdpl3Z1RODIXIZQLiAXPCIs22OsAc6hHngDYG5L8nEKY6ctNVlaw7zl5zjKb0UcWyEf62GileK0jLKQCXwM-lkilxRhNktrxwk-lTjftFZtRRYptZ_Lz8z_GGtCFc-Giv_4PKGE8go2UJ0aR1CFwPLSp24YDKM39G2QDuF1O0kJPdOFH1ueWuAK83a6LPh0j5uGsMysaCeOpNzxD0go7wFgtEd2p-rVx2Pc4Ct_u1)
 ### 为什么使用服务器端渲染(SSR)？
 1. 更好的搜索引擎优化（Search-Engine-Optimization，SEO）
     * 大部分网站都希望自己能够出现在搜索引擎的搜索页前列，这个前提就是网页内容要能够被搜索引擎的爬虫正确抓取到。虽然 Google 这样的搜索引擎已经可以检索浏览器端渲染的网页，但毕竟不是全部搜索引擎都能做到，如果搜索引擎的爬虫只能拿到服务器端渲染的内容，完全浏览器端渲染就行不通了
